@@ -155,6 +155,11 @@ func (decoder *mapDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 	c := iter.nextToken()
 	if c == 'n' {
 		iter.skipThreeBytes('u', 'l', 'l')
+		// Only nil the map for a real JSON null; invalid tokens that start
+		// with 'n' (none, nan, ...) set iter.Error and must leave the map alone.
+		if iter.Error != nil {
+			return
+		}
 		*(*unsafe.Pointer)(ptr) = nil
 		mapType.UnsafeSet(ptr, mapType.UnsafeNew())
 		return
